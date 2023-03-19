@@ -212,6 +212,50 @@ frequent_nontechnical_skill %>%
   ylab("Percentage of Skill in Job Posting") +
   xlab("Skill")
 ```
+
+## Analysis of job postings by State
+```{r}
+library(plotly)
+
+#Filter out the rows with the city and state value "United States" because we don't want to report on those
+Postings_by_state <- tidied_Linkedin %>% filter(Job_location_City != "United States")
+Postings_by_state <- Postings_by_state %>% filter(Job_location_State != "United States")
+
+
+# Count the job listings for the available states in the dataset
+JobMapDF <- Postings_by_state %>% group_by(Job_location_State) %>% dplyr::summarize (n = n())
+
+JobMapDF$hover <- with(JobMapDF, paste(Job_location_State, '<br>', "# of Jobs:", n))
+
+g <- list(
+  resolution = 110,
+  showsubunits = T,
+  subunitcolor = '#4b0082',
+  scope = 'usa',
+  showcountries = T,
+  countrycolor = '#4b0082',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = '#bb99ff',
+  showland = TRUE,
+  landcolor = toRGB("#eee6ff")
+)
+
+# plot the map
+map <- plot_geo(JobMapDF, locationmode = 'USA-states') %>%
+  add_trace(
+    z = ~n, text = ~hover, locations = ~Job_location_State,
+    color = ~n, colors = 'Purples'
+  ) %>%
+  colorbar(title = "Jobs Counts") %>%
+  layout(
+    title = 'Data Scientist Jobs Postings Analyzed by State',
+    geo = g
+  )
+map
+
+```
+
 Sources
 
 https://stackoverflow.com/questions/73640981/using-grep-on-multiple-columns-to-create-new-variable-in-r
